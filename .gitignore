@@ -1,0 +1,19 @@
+# secret stuff
+.env
+
+# mounted mage_data folder (during local development)
+mage/data
+
+# ClickHouse client configs
+clickhouse-client.xml
+
+# annoying Mac stuff :)
+.DS_Store
+
+# logs
+*.log
+
+# mounted SSH keys for SSH access to services within the Docker compose setup (currently used to acess mage code in IDE of host machine)
+authorized_keys
+
+tmp/

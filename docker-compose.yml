@@ -1,0 +1,47 @@
+version: '3'
+services:
+  ## roughly based on docker-compose.yml at https://github.com/mage-ai/compose-quickstart/blob/946bc256f4582e764c2e256d581f34c44937779e/docker-compose.yml
+  mage:
+    # replace my_mage_prj with the name of your project
+    command: mage start my_mage_prj
+    env_file:
+      - .env
+    build:
+      context: mage
+      # custom dockerfile extending official mage image that installs stuff required for Spark standalone mode
+      dockerfile: Dockerfile
+    volumes:
+      # mage_data folder (https://docs.mage.ai/design/abstractions/project-structure#project-data)
+      - ./mage/data:/home/src/mage_data
+      # mount public SSH keys of host machine into container for passwordless SSH access
+      # effectively, any public SSH keys in this file will be authorized to SSH into the container
+      - ./mage/authorized_keys:/root/.ssh/authorized_keys
+    environment:
+      # tell mage where to store the project's code
+      USER_CODE_PATH: /home/src/my_mage_prj
+      # mage-specific env vars for Git config
+      # repo link in format https://github.com/OrganizationOrUser/repo-name.git
+      GIT_REPO_LINK: ${MAGE_PRJ_CODE_GIT_REPO_LINK}
+      # afaik, repo path should be the same as USER_CODE_PATH
+      GIT_REPO_PATH: /home/src/my_mage_prj
+      GIT_USERNAME: ${MAGE_PRJ_CODE_GIT_USERNAME}
+      GIT_EMAIL: ${MAGE_PRJ_CODE_GIT_EMAIL}
+      GIT_AUTH_TYPE: https
+      GIT_BRANCH: main
+      GIT_ACCESS_TOKEN: ${MAGE_PRJ_CODE_GIT_ACCESS_TOKEN}
+      # pull latest code from git repo on startup
+      GIT_SYNC_ON_START: 1
+    ports:
+      # web UI
+      - 6789:6789
+      # SSH (useful for editing code from IDE on local machine)
+      - 2222:22
+    restart: on-failure:5
+    networks:
+      - etl_network
+
+networks:
+  etl_network:
+    driver: bridge
+
+
